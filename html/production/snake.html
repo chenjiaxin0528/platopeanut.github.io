@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Snake</title>
+    <style>
+        #canvas {
+            display: block;
+            margin: auto;
+            border: 2px solid black;
+        }
+        button {
+            display: block;
+            margin: auto;
+            width: 100px;
+            height: 20px;
+            margin-top: 10px;
+        }
+        div {
+            width: fit-content;
+            height: fit-content;
+            margin: auto;
+            background-color: blanchedalmond;
+        }
+    </style>
+</head>
+<body>
+        <div id="score">Score: 0</div>
+        <canvas id="canvas"></canvas>
+        <button id="start">Start</button>
+        <button id="left">LEFT</button>
+        <button id="up">UP</button>
+        <button id="down">DOWN</button>
+        <button id="right">RIGHT</button>
+
+        <script>
+            var canvas = document.getElementById("canvas");
+            var map = canvas.getContext("2d");
+            canvas.width = 600;
+            canvas.height = 400;
+            var Colors = {
+                food : 'orange',
+                snake : 'green'
+            };
+            var Dirs = {
+                up:0,
+                down:1,
+                left:2,
+                right:3
+            };
+            function drawRect(x,y,color){
+                map.beginPath();
+                map.fillStyle = color;
+                map.fillRect(x*20,y*20,20,20);
+            }
+            function Random(min,max){
+                // [min , max)
+                return Math.floor(Math.random()*(max-min)+min);
+            }
+            function Point(x,y){
+                this.x = x;
+                this.y = y;
+            }
+
+            function Direction(){
+                this.up = document.getElementById("up");
+                this.down = document.getElementById("down");
+                this.left = document.getElementById("left");
+                this.right = document.getElementById("right");
+                this.direction = Dirs.right;
+                this.init = function (){
+                    this.up.addEventListener('click',function () {
+                        if(this.direction!=Dirs.down) this.direction = Dirs.up;
+                    }.bind(this));
+                    this.down.addEventListener('click',function () {
+                        if(this.direction!=Dirs.up) this.direction = Dirs.down;
+                    }.bind(this));
+                    this.left.addEventListener('click',function () {
+                        if(this.direction!=Dirs.right) this.direction = Dirs.left;
+                    }.bind(this));
+                    this.right.addEventListener('click',function () {
+                        if(this.direction!=Dirs.left) this.direction = Dirs.right;
+                    }.bind(this));
+                }
+                this.init();
+            }
+            function Food(){
+                this.x = Random(0,30);
+                this.y = Random(0,20);
+                this.create = function (){
+                    drawRect(this.x,this.y,Colors.food);
+                }
+                this.lost = function (){
+                    map.clearRect(this.x*20,this.y*20,20,20);
+                    this.x = Random(0,30);
+                    this.y = Random(0,20);
+                }
+                this.create();
+            }
+            function Snake(){
+                this.body = [];
+                this.head = new Point(5,5);
+                this.speed = 1;
+                this.dir = new Direction();
+                this.flag = false;      //when snake get food is true
+                this.body.push(new Point(4,5));
+                this.body.push(new Point(3,5));
+                this.body.push(new Point(2,5));
+
+                this.getScore = function (){
+                    return (this.body.length-2)*10;
+                }
+                this.draw = function (){
+                    drawRect(this.head.x,this.head.y,Colors.snake);
+                    for (let bodyElement of this.body) {
+                        drawRect(bodyElement.x,bodyElement.y,Colors.snake);
+                    }
+                }
+                this.move = function (){
+                    this.clear();
+                    let tmpX = this.body[this.body.length-1].x;
+                    let tmpY = this.body[this.body.length-1].y;
+                    for(let i=this.body.length-1;i>0;i--){
+                        this.body[i].x = this.body[i-1].x;
+                        this.body[i].y = this.body[i-1].y;
+                    }
+                    if(this.flag===true){
+                        this.body.push(new Point(tmpX,tmpY));
+                        this.flag = false;
+                    }
+                    this.body[0].x = this.head.x;
+                    this.body[0].y = this.head.y;
+                    if(this.dir.direction===Dirs.up) this.head.y -= this.speed;
+                    else if(this.dir.direction===Dirs.down) this.head.y += this.speed;
+                    else if(this.dir.direction===Dirs.left) this.head.x -= this.speed;
+                    else if(this.dir.direction===Dirs.right) this.head.x += this.speed;
+                    this.draw();
+                    this.crossWall();
+                }
+                this.clear = function (){
+                    map.clearRect(this.head.x*20,this.head.y*20,20,20);
+                    for (let bodyElement of this.body) {
+                        map.clearRect(bodyElement.x*20,bodyElement.y*20,20,20);
+                    }
+                }
+                this.crossWall = function (){
+                    if(this.head.x<0) this.head.x = 29;
+                    if(this.head.x>29) this.head.x = 0;
+                    if(this.head.y<0) this.head.y = 19;
+                    if(this.head.y>19) this.head.y = 0;
+                }
+                this.checkDefeat = function (run) {
+                    for (let bodyElement of this.body) {
+                        if(this.head.x===bodyElement.x && this.head.y===bodyElement.y){
+                            clearInterval(run);
+                            map.clearRect(0,0,600,400);
+                        }
+                    }
+                }
+                this.draw();
+            }
+            function main(){
+                var snake = new Snake();
+                var food = new Food();
+                var score = document.getElementById("score");
+                var run = setInterval(function (){
+                    snake.move();
+                    if(snake.head.x===food.x && snake.head.y===food.y){
+                        food.lost();
+                        food.create();
+                        snake.flag = true;
+                        score.innerText = "Score: "+snake.getScore();
+                    }
+                    snake.checkDefeat(run);
+                },100);
+            }
+            var start = document.getElementById("start");
+            start.onclick = main;
+
+        </script>
+</body>
+</html>

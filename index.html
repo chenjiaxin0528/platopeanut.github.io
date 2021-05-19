@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="Shortcut Icon" href="./img/icon.ico" type="image/x-icon" />
+    <title>Peanut's Blog</title>
+    <style>
+        div {
+            text-align: center;
+        }
+    </style>
+</head>
+<body style="text-align: center;background-color: aliceblue;">
+    <div style="height: 100px;"><h1>WELCOME</h1></div>
+    <div id="time">
+    </div>
+    <br>
+    <script>
+        let time = document.getElementById("time");
+        let now;
+        setInterval(function(){
+            now = new Date();
+            let hour = now.getHours()<10 ? "0"+now.getHours() : now.getHours();
+            let minute = now.getMinutes()<10 ? "0"+now.getMinutes() :now.getMinutes();
+            let second = now.getSeconds()<10 ? "0"+now.getSeconds() :now.getSeconds();
+            time.innerText = now.getFullYear()+"-"+(now.getMonth()+1)+"-"+now.getDate()+" "+hour+":"+minute+":"+second;
+        },100)
+    </script>
+    <div>
+        <div><strong>@author: 陈佳明</strong></div>
+        <br>
+        <div><strong>@mail: 2857177614@qq.com</strong></div>
+    </div>
+    <div style="margin-top: 100px;">
+        <div><h2>Productions</h2></div>
+        <div><a href="./html/production/ball.html">Ball</a></div>
+        <div><a href="./html/production/snake.html">Snake</a></div>
+        <div><a href="./html/production/flyBird/index.html">flyBird</a></div>
+        <div><a href="./html/production/gravity.html">Gravity</a></div>
+        <div><a href="./html/production/doublePendulum/index.html">双摆仿真</a></div>
+    </div>
+    <div style="margin-top: 100px;">
+        <div><h2>Note</h2></div>
+        <div><a href="./html/note/gui/index.html">Java GUI</a></div>
+        <div><a href="./html/note/vue/index.html">Vue</a></div>
+    </div>
+
+  
+
+</body>
+</html>

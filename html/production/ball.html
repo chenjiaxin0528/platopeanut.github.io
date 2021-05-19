@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>index</title>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <script>
+        var canvas = document.getElementById("canvas");
+        var ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        var Colors = [
+            "#99cccc","#FFCC99","#FFCCCC","#0099CC","#FF9999","#FFFF66","#FF6666","#FFFF00","#99CCFF"
+        ]
+
+        function Random(min,max){
+            return Math.random()*(max-min)+min;
+        }
+
+        function Ball(){
+            this.x = Random(0,canvas.width);
+            this.y = Random(0,canvas.height);
+            this.r = Random(10,20);
+            this.color = Colors[Math.floor(Random(0,8))];
+            this.xV = Random(-1,1);
+            this.yV = Random(-1,1);
+
+            this.draw = function (){
+                ctx.beginPath();
+                ctx.arc(this.x,this.y,this.r,0,Math.PI*2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+            this.move = function (){
+                this.x += this.xV;
+                this.y += this.yV;
+                if(this.x-this.r<=0||this.x+this.r>=canvas.width) this.xV = -this.xV;
+                if(this.y-this.r<=0||this.y+this.r>=canvas.height) this.yV = -this.yV;
+                this.draw();
+            }
+        }
+
+        var ballList = new Array();
+        for (let i = 0; i < 1000; i++) {
+            let item = new Ball();
+            item.draw();
+            ballList.push(item);
+        }
+
+        function run(){
+            setInterval(function (){
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+                for (let ballListElement of ballList) {
+                    ballListElement.move();
+                }
+            },10);
+        }
+        run();
+    </script>
+</body>
+</html>

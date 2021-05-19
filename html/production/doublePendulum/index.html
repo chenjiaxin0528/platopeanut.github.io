@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title></title>
+		
+		<link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+
+		<script src="js/vue.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/echarts.js" type="text/javascript" charset="utf-8"></script>
+		<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+		
+		<style type="text/css">
+			* {
+				margin: 0;
+				padding: 0;
+				user-select: none;
+			}
+			
+			#app {
+				width: 1000px;
+				height: 800px;
+				margin: 0 auto;
+				margin-top: 50px;
+				border-radius: 20px;
+				box-shadow: 0px 0px 15px 4px grey;
+			}
+			
+			.leftBox {
+				width: 260px;
+				height: 800px;
+				float: left;
+				border-radius: 20px 0 0 20px;
+				background-color: #ECF0F2;
+			}		
+			
+			.row {
+				margin-left: 10px;
+				margin-top: 20px;
+			}
+			
+			input {
+				float: right;
+				margin-right: 5px;
+				width: 55px;
+			}
+			
+			.startButton {
+				width: 100px;
+				height: 40px;
+				margin-left: 20px;
+				margin-top: 360px;
+				border-radius: 10px;
+			}
+			
+			.graphsButton {
+				width: 100px;
+				height: 40px;
+				margin-left: 20px;
+				margin-top: 360px;
+				border-radius: 10px;
+			}
+			
+			.rightBox {
+				width: 740px;
+				height: 800px;
+				margin-left: 260px;
+				position: relative;
+				border-radius: 0 20px 20px 0;
+			}
+			
+			.topBox{
+				width: 100%;
+				height: 12%;
+			}
+			
+			.topList{
+				float: left;
+				margin-left: 5px;
+				line-height: 40px;	
+			}
+			
+			.slider{
+				width: 75%;
+				height: 40px;
+				margin-right: 20px;
+				float: right;
+			}
+			
+			#backGroundImage {
+				width: 400px;
+				height: 400px;
+				position: absolute;
+				margin: auto;
+				top: 0;
+				bottom: 0;
+				left: 0;
+				right: 0;
+				background-image: url(img/structureDiagram.png);
+				background-size: cover;
+			}
+			
+			#preview{
+				width: 700px;
+				height: 700px;
+				position: absolute;
+				margin: auto;
+				top: 0;
+				bottom: 0;
+				left: 0;
+				right: 0;
+				display: none;
+			}
+			
+			#movementBox {
+				width: 700px;
+				height: 750px;
+				position: absolute;
+				margin: auto;
+				top: 0;
+				bottom: 0;
+				left: 0;
+				right: 0;
+				display: none;
+			}
+			
+			#drawArea1 {
+				width: 700px;
+				height: 700px;
+				position: absolute;
+				margin: auto;
+				top: 0;
+				bottom: 0;
+				left: 0;
+				right: 0;
+			}
+			
+			.checkBox {
+				margin-top: 102%;
+				margin-left: 35%;
+				position: absolute;
+			}
+			
+			#graphsBox {
+				width: 700px;
+				height: 750px;
+				position: absolute;
+				margin: auto;
+				top: 0;
+				bottom: 0;
+				left: 0;
+				right: 0;
+				display: none;
+			}
+			
+			#drawArea2 {
+				width: 700px;
+				height: 700px;
+				position: absolute;
+				margin: auto;
+				top: 0;
+				bottom: 0;
+				left: 0;
+				right: 0;
+			}
+			
+			.backButton {
+				width: 150px;
+				height: 40px;
+				margin-left: 80%;
+				margin-top: 100%;
+				border-radius: 10px;
+				position: absolute;
+			}
+			.replayButton{
+				width: 120px;
+				height: 40px;
+				margin-left: 80%;
+				margin-top: 100%;
+				border-radius: 10px;
+				position: absolute;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="app">
+			<div class="leftBox">
+				<div class="row">
+					<label>内球质量m1(kg)：</label>
+					<input type="number" v-model.number="m1" min="0"/>
+				</div>
+				<div class="row">
+					<label>外球质量m2(kg)：</label>
+					<input type="number" v-model.number="m2" min="0"/>
+				</div>
+				<div class="row" @mousedown="canPreview">
+					<label>内杆长度l1(m)：</label>
+					<input type="number" v-model.number="l1" @change="preview" min="0"/>
+				</div>
+				<div class="row" @mousedown="canPreview">
+					<label>外杆长度l2(m)：</label>
+					<input type="number" v-model.number="l2" @change="preview" min="0"/>
+				</div>
+				<div class="row">
+					<label>重力加速度g(m/s²)：</label>
+					<input type="number" v-model.number="g" min="0"/>
+				</div>
+				<div class="row">
+					<label>内球释放角速度ω1(°/s)：</label>
+					<input type="number" v-model.number="initialOmega1" />
+				</div>
+				<div class="row">
+					<label>外球释放角速度ω2(°/s)：</label>
+					<input type="number" v-model.number="initialOmega2" />
+				</div>
+				<div class="row">
+					<label>仿真时长(s)</label>
+					<input type="number" v-model.number="timeRange" min="0"/>
+				</div>
+				<div class="row">
+					<label>迭代步长(s)</label>
+					<input type="number" v-model.number="stepLength" disabled/>
+				</div>
+				<el-button @click="startSimulation" class="startButton" type="primary">开始仿真</el-button>
+				<el-button @click="showGraphs" class="graphsButton" :disabled="graphsDisabled" type="primary">仿真数据</el-button>
+			</div>
+			<div class="rightBox">
+				<div class="topBox" @mousedown="canPreview">
+					<div class="topBoxList">
+						<label class="topList">内球释放角度θ1(°)：</label>
+						<el-slider v-model.number="initialTheta1" @input="preview" class="slider" show-input  :show-tooltip="false" :min="-180" :max="180"></el-slider>
+					</div>
+					<div class="topBoxList">
+						<label class="topList">外球释放角度θ2(°)：</label>
+						<el-slider v-model.number="initialTheta2" @input="preview" class="slider" show-input  :show-tooltip="false" :min="-180" :max="180"></el-slider>
+					</div>
+				</div>
+				<div id="backGroundImage" :style="{display: bgDisplay}"></div>
+				<div id="preview" :style="{display: previewDisplay}"></div>
+				<div id="movementBox" :style="{display: movementBoxDispaly}">
+					<div id="drawArea1"></div>
+					<div class="checkBox">
+						<el-checkbox v-model="showInnerBallTrack" >内球轨迹</el-checkbox>
+						<el-checkbox v-model="showOuterBallTrack" >外球轨迹</el-checkbox>
+					</div>
+					<el-button @click="draw" class="replayButton" icon="el-icon-refresh-left" type="primary">重新播放</el-button>
+				</div>
+				<div id="graphsBox" :style="{display: graphsBoxDispaly}">
+					<div id="drawArea2"></div>
+					<el-button @click="backToSimulation" class="backButton" icon="el-icon-arrow-left" type="primary">返回仿真界面</el-button>
+				</div>
+			</div>
+		</div>
+		<script type="text/javascript">
+			let app = new Vue({
+				el: "#app",
+				data: {
+					m1: 1,
+					m2: 1,
+					l1: 1,
+					l2: 1,
+					g: 9.8,
+					initialTheta1: 120,
+					initialOmega1: 0,
+					initialTheta2: 60,
+					initialOmega2: 0,
+					timeRange: 10,
+					stepLength: 0.0001,
+					roughTheta1: [],
+					roughOmega1: [],
+					roughTheta2: [],
+					roughOmega2: [],
+					innerBallPosition: [],
+					outerBallPosition: [],
+					showInnerBallTrack: true,
+					showOuterBallTrack: true,
+					bgDisplay: "block",
+					previewDisplay: "none",
+					movementBoxDispaly: "none",
+					graphsBoxDispaly: "none",
+					graphsDisabled: true,
+					timer: null,
+					isRunningNow: false,
+				},
+				
+				methods: {
+					
+					startSimulation: function() {
+
+						clearInterval(this.timer);
+						this.isRunningNow = true;
+						this.clearData();
+						this.bgDisplay = "none";
+						this.previewDisplay = "none";
+						this.movementBoxDispaly = "block";
+						this.graphsBoxDispaly = "none";
+						this.generateData(); 
+						this.graphsDisabled = false;
+						this.draw();
+					},
+					
+					clearData: function(){
+						
+						this.roughTheta1 = [];
+						this.roughOmega1 = [];
+						this.roughTheta2 = [];
+						this.roughOmega2 = [];
+						this.innerBallPosition = [];
+						this.outerBallPosition = [];
+					},
+
+					draw: function() {
+						
+						drawArea1 = echarts.init(document.querySelector("#drawArea1"));
+						
+						var l1 = this.l1;
+						var l2 = this.l2;
+						
+						var option = {
+							animation: false,
+							xAxis: {
+								min: -1.05 * (l1 + l2),
+								max: 1.05 * (l1 + l2),
+								show: false
+							},
+							yAxis: {
+								min: -1.05 * (l1 + l2),
+								max: 1.05 * (l1 + l2),
+								show: false
+							},
+							series: [{
+									name: 'innerLine',
+									showSymbol: false,
+									type: 'line',
+									lineStyle: {
+										width: 3,
+										color: "green"
+									},
+									data: innerLine,
+
+								},
+								{
+									name: 'innerBallOutline',
+									showSymbol: false,
+									type: 'line',
+									lineStyle: {
+										width: 3,
+										color: "red"
+									},
+									data: innerBallOutline,
+
+								},
+								{
+									name: 'innerBallTrack',
+									showSymbol: false,
+									type: 'line',
+									lineStyle: {
+										width: 1,
+										color: "red"
+									},
+									data: innerBallTrack,
+
+								},
+								{
+									name: 'outerLine',
+									showSymbol: false,
+									type: 'line',
+									lineStyle: {
+										width: 3,
+										color: "green"
+									},
+									data: outerLine,
+
+								},
+								{
+									name: 'outerBallOutline',
+									showSymbol: false,
+									type: 'line',
+									lineStyle: {
+										width: 3,
+										color: "orange"
+									},
+									data: outerBallOutline,
+								},
+								{
+									name: 'outerBallTrack',
+									showSymbol: false,
+									type: 'line',
+									lineStyle: {
+										width: 1,
+										color: "orange"
+									},
+									data: outerBallTrack,
+								}
+							]
+						};
+
+						var n = 0;
+						var r = 0.05 * (l1 + l2);
+						var timeRange = this.timeRange;
+						
+						var innerLine = [];
+						var outerLine = [];
+						var innerBallTrack = [];
+						var outerBallTrack = [];
+						var innerBallOutline = [];
+						var outerBallOutline = [];
+						
+						var innerBallPosition = this.innerBallPosition;
+						var outerBallPosition = this.outerBallPosition;
+						
+						clearInterval(this.timer);
+						
+						this.timer = setInterval(() => {
+
+							innerBallOutline = [];
+							outerBallOutline = [];
+
+							for (var t = 0; t <= 2 * Math.PI; t += 0.01) {
+								innerBallOutline.push([innerBallPosition[n][0] + r * Math.cos(t), innerBallPosition[n][1] + r * Math.sin(t)]); 
+								outerBallOutline.push([outerBallPosition[n][0] + r * Math.cos(t), outerBallPosition[n][1] + r * Math.sin(t)]);
+							};
+
+							innerLine = [
+								[0, 0],
+								[innerBallPosition[n][0], innerBallPosition[n][1]]
+							];
+							outerLine = [
+								[innerBallPosition[n][0], innerBallPosition[n][1]],
+								[outerBallPosition[n][0], outerBallPosition[n][1]]
+							];
+
+							innerBallTrack.push([innerBallPosition[n][0], innerBallPosition[n][1]]);
+							outerBallTrack.push([outerBallPosition[n][0], outerBallPosition[n][1]]);
+
+							option.series[0].data = innerLine;
+							option.series[1].data = innerBallOutline;
+							option.series[2].data = innerBallTrack;
+							option.series[3].data = outerLine;
+							option.series[4].data = outerBallOutline;
+							option.series[5].data = outerBallTrack;
+
+							if (this.showInnerBallTrack == false) {
+								option.series[2].data = [];
+							};
+
+							if (this.showOuterBallTrack == false) {
+								option.series[5].data = [];
+							}
+
+							drawArea1.setOption(option);
+
+							n += innerBallPosition.length / timeRange * 0.01;
+
+							if (n >= innerBallPosition.length) {
+								clearInterval(this.timer);
+								this.isRunningNow = false;
+							};
+						}, 10);
+					},
+
+					generateData: function() {
+						
+						var m1 = this.m1;
+						var m2 = this.m2;
+						var l1 = this.l1;
+						var l2 = this.l2;
+						var g = this.g;
+						
+						var initialTheta1 = this.initialTheta1 / 180 * Math.PI;
+						var initialOmega1 = this.initialOmega1 / 180 * Math.PI;
+						var initialTheta2 = this.initialTheta2 / 180 * Math.PI;
+						var initialOmega2 = this.initialOmega2 / 180 * Math.PI;
+					
+						var y1 = [];
+						var y2 = [];
+						var y3 = [];
+						var y4 = [];
+					
+						y1[0] = [0, initialTheta1];
+						y2[0] = [0, initialOmega1];
+						y3[0] = [0, initialTheta2];
+						y4[0] = [0, initialOmega2];
+					
+						var k1_1 = 0;
+						var k1_2 = 0;
+						var k1_3 = 0;
+						var k1_4 = 0;
+					
+						var k2_1 = 0;
+						var k2_2 = 0;
+						var k2_3 = 0;
+						var k2_4 = 0;
+					
+						var k3_1 = 0;
+						var k3_2 = 0;
+						var k3_3 = 0;
+						var k3_4 = 0;
+					
+						var k4_1 = 0;
+						var k4_2 = 0;
+						var k4_3 = 0;
+						var k4_4 = 0;
+					
+						var h = this.stepLength;
+						var timeRange = this.timeRange;
+					
+						for (var i = 0; i < timeRange / h; i++) {
+							k1_1 = y2[i][1];
+							k1_2 = y2[i][1] + h / 2 * k1_1;
+							k1_3 = y2[i][1] + h / 2 * k1_2;
+							k1_4 = y2[i][1] + h * k1_3;
+							y1[i + 1] = [(i + 1) * h, y1[i][1] + h / 6 * (k1_1 + 2 * k1_2 + 2 * k1_3 + k1_4)];
+					
+							k2_1 = (m2 * Math.cos(y1[i][1] - y3[i][1]) * (g * Math.sin(y3[i][1]) - l1 *
+								Math.sin(y1[i][1] - y3[i][1]) * Math.pow(y2[i][1], 2)) / (l1 * m1 + l1 *
+								m2 - l1 * m2 * Math.pow(Math.cos(y1[i][1] - y3[i][1]), 2)) - (g * Math.sin(
+									y1[i][1]) * (m1 + m2) + l2 * m2 * Math.sin(y1[i][1] - y3[i][1]) * Math
+								.pow(y4[i][1], 2)) / (l1 * m1 + l1 * m2 - l1 * m2 * Math.pow(Math.cos(
+								y1[i][1] - y3[i][1]), 2)));
+							k2_2 = (m2 * Math.cos((y1[i][1] + h / 2 * k2_1) - (y3[i][1] + h / 2 * k2_1)) * (g *
+								Math.sin(y3[i][1] + h / 2 * k2_1) - l1 * Math.sin((y1[i][1] + h / 2 * k2_1) - (y3[i][1] +
+									h / 2 * k2_1)) * Math.pow((y2[i][1] + h / 2 * k2_1), 2)) / (l1 * m1 + l1 * m2 -
+								l1 * m2 * Math.pow(Math.cos((y1[i][1] + h / 2 * k2_1) - (y3[i][1] + h / 2 * k2_1)), 2)
+							) - (g * Math.sin(y1[i][1] + h / 2 * k2_1) * (m1 + m2) + l2 * m2 * Math.sin((
+								y1[i][1] + h / 2 * k2_1) - (y3[i][1] + h / 2 * k2_1)) * Math.pow((y4[i][1] + h / 2 * k2_1),
+								2)) / (l1 * m1 + l1 * m2 - l1 * m2 * Math.pow(Math.cos((y1[i][1] + h /
+								2 * k2_1) - (y3[i][1] + h / 2 * k2_1)), 2)));
+							k2_3 = (m2 * Math.cos((y1[i][1] + h / 2 * k2_2) - (y3[i][1] + h / 2 * k2_2)) * (g *
+								Math.sin(y3[i][1] + h / 2 * k2_2) - l1 * Math.sin((y1[i][1] + h / 2 * k2_2) - (y3[i][1] +
+									h / 2 * k2_2)) * Math.pow((y2[i][1] + h / 2 * k2_2), 2)) / (l1 * m1 + l1 * m2 -
+								l1 * m2 * Math.pow(Math.cos((y1[i][1] + h / 2 * k2_2) - (y3[i][1] + h / 2 * k2_2)), 2)
+							) - (g * Math.sin(y1[i][1] + h / 2 * k2_2) * (m1 + m2) + l2 * m2 * Math.sin((
+								y1[i][1] + h / 2 * k2_2) - (y3[i][1] + h / 2 * k2_2)) * Math.pow((y4[i][1] + h / 2 * k2_2),
+								2)) / (l1 * m1 + l1 * m2 - l1 * m2 * Math.pow(Math.cos((y1[i][1] + h /
+								2 * k2_2) - (y3[i][1] + h / 2 * k2_2)), 2)));
+							k2_4 = (m2 * Math.cos((y1[i][1] + h * k2_3) - (y3[i][1] + h * k2_3)) * (g * Math.sin(
+									y3[i][1] + h * k2_3) - l1 * Math.sin((y1[i][1] + h * k2_3) - (y3[i][1] + h * k2_3)) *
+								Math.pow((y2[i][1] + h * k2_3), 2)) / (l1 * m1 + l1 * m2 - l1 * m2 *
+								Math.pow(Math.cos((y1[i][1] + h * k2_3) - (y3[i][1] + h * k2_3)), 2)) - (g * Math.sin(y1[
+								i][1] + h * k2_3) * (m1 + m2) + l2 * m2 * Math.sin((y1[i][1] + h * k2_3) - (
+								y3[i][1] + h * k2_3)) * Math.pow((y4[i][1] + h * k2_3), 2)) / (l1 * m1 + l1 * m2 -
+								l1 * m2 * Math.pow(Math.cos((y1[i][1] + h * k2_3) - (y3[i][1] + h * k2_3)), 2)));
+							y2[i + 1] = [(i + 1) * h, y2[i][1] + h / 6 * (k2_1 + 2 * k2_2 + 2 * k2_3 + k2_4)];
+					
+							k3_1 = y4[i][1];
+							k3_2 = y4[i][1] + h / 2 * k3_1;
+							k3_3 = y4[i][1] + h / 2 * k3_2;
+							k3_4 = y4[i][1] + h * k3_3;
+							y3[i + 1] = [(i + 1) * h, y3[i][1] + h / 6 * (k3_1 + 2 * k3_2 + 2 * k3_3 + k3_4)];
+					
+							k4_1 = (Math.cos(y1[i][1] - y3[i][1]) * (g * Math.sin(y1[i][1]) * (m1 + m2) +
+								l2 * m2 * Math.sin(y1[i][1] - y3[i][1]) * Math.pow(y4[i][1], 2))) / (l2 *
+								m1 + l2 * m2 - l2 * m2 * Math.pow(Math.cos(y1[i][1] - y3[i][1]), 2)) - (
+								(m1 + m2) * (g * Math.sin(y3[i][1]) - l1 * Math.sin(y1[i][1] - y3[i][1]) *
+									Math.pow(y2[i][1], 2))) / (l2 * m1 + l2 * m2 - l2 * m2 * Math.pow(Math.cos(
+								y1[i][1] - y3[i][1]), 2));
+							k4_2 = (Math.cos((y1[i][1] + h / 2 * k4_1) - (y3[i][1] + h / 2 * k4_1)) * (g * Math.sin((
+								y1[i][1] + h / 2 * k4_1)) * (m1 + m2) + l2 * m2 * Math.sin((y1[i][1] + h /
+								2 * k4_1) - (y3[i][1] + h / 2 * k4_1)) * Math.pow((y4[i][1] + h / 2 * k4_1), 2))) / (l2 *
+								m1 + l2 * m2 - l2 * m2 * Math.pow(Math.cos((y1[i][1] + h / 2 * k4_1) - (y3[
+									i][1] + h / 2 * k4_1)), 2)) - ((m1 + m2) * (g * Math.sin((y3[i][1] + h / 2 * k4_1)) -
+								l1 * Math.sin((y1[i][1] + h / 2 * k4_1) - (y3[i][1] + h / 2 * k4_1)) * Math.pow((y2[i]
+									[1] + h / 2 * k4_1), 2))) / (l2 * m1 + l2 * m2 - l2 * m2 * Math.pow(Math.cos(
+								(y1[i][1] + h / 2 * k4_1) - (y3[i][1] + h / 2 * k4_1)), 2));
+							k4_3 = (Math.cos((y1[i][1] + h / 2 * k4_2) - (y3[i][1] + h / 2 * k4_2)) * (g * Math.sin((
+								y1[i][1] + h / 2 * k4_2)) * (m1 + m2) + l2 * m2 * Math.sin((y1[i][1] + h /
+								2 * k4_2) - (y3[i][1] + h / 2 * k4_2)) * Math.pow((y4[i][1] + h / 2 * k4_2), 2))) / (l2 *
+								m1 + l2 * m2 - l2 * m2 * Math.pow(Math.cos((y1[i][1] + h / 2 * k4_2) - (y3[
+									i][1] + h / 2 * k4_2)), 2)) - ((m1 + m2) * (g * Math.sin((y3[i][1] + h / 2 * k4_2)) -
+								l1 * Math.sin((y1[i][1] + h / 2 * k4_2) - (y3[i][1] + h / 2 * k4_2)) * Math.pow((y2[i]
+									[1] + h / 2 * k4_2), 2))) / (l2 * m1 + l2 * m2 - l2 * m2 * Math.pow(Math.cos(
+								(y1[i][1] + h / 2 * k4_2) - (y3[i][1] + h / 2 * k4_2)), 2));
+							k4_4 = (Math.cos((y1[i][1] + h * k4_3) - (y3[i][1] + h * k4_3)) * (g * Math.sin((y1[i]
+								[1] + h * k4_3)) * (m1 + m2) + l2 * m2 * Math.sin((y1[i][1] + h * k4_3) - (y3[
+								i][1] + h * k4_3)) * Math.pow((y4[i][1] + h * k4_3), 2))) / (l2 * m1 + l2 * m2 -
+								l2 * m2 * Math.pow(Math.cos((y1[i][1] + h * k4_3) - (y3[i][1] + h * k4_3)), 2)) - ((
+								m1 + m2) * (g * Math.sin((y3[i][1] + h * k4_3)) - l1 * Math.sin((y1[i][1] +
+								h * k4_3) - (y3[i][1] + h * k4_3)) * Math.pow((y2[i][1] + h * k4_3), 2))) / (l2 * m1 +
+								l2 * m2 - l2 * m2 * Math.pow(Math.cos((y1[i][1] + h * k4_3) - (y3[i][1] + h *
+									k4_3)), 2));
+							y4[i + 1] = [(i + 1) * h, y4[i][1] + h / 6 * (k4_1 + 2 * k4_2 + 2 * k4_3 + k4_4)];
+						};
+						
+						var innerBallPosition = [];
+						var outerBallPosition = [];
+						
+						var roughTheta1 = [];
+						var roughOmega1 = [];
+						var roughTheta2 = [];
+						var roughOmega2 = [];
+						
+						// 由于原始数据过度密集，导致绘制曲线困难，下面将绘制曲线的数据进行稀释，加速绘图速度。
+						for(var j = 0; j < timeRange/ h; j += 100){
+							
+							roughTheta1.push([j * h, y1[j][1]]);
+							roughOmega1.push([j * h, y2[j][1]]);
+							roughTheta2.push([j * h, y3[j][1]]);
+							roughOmega2.push([j * h, y4[j][1]]);
+							
+							innerBallPosition[j/100] = [l1 * Math.sin(y1[j][1]), -l1 * Math.cos(y1[j][1])];
+							outerBallPosition[j/100] = [l1 * Math.sin(y1[j][1]) + l2 * Math.sin(y3[j][1]), -l1 * Math.cos(y1[j][1]) - l2 * Math.cos(y3[j][1])];
+						};
+						
+						this.roughTheta1 = roughTheta1;
+						this.roughOmega1 = roughOmega1;
+						this.roughTheta2 = roughTheta2;
+						this.roughOmega2 = roughOmega2;
+						
+						this.innerBallPosition = innerBallPosition;
+						this.outerBallPosition = outerBallPosition;
+					},
+					
+					showGraphs: function() {
+						
+						this.previewDisplay = "none";
+						this.movementBoxDispaly = "none";
+						this.graphsBoxDispaly = "block";
+						
+						var drawArea2 = echarts.init(document.querySelector("#drawArea2"));
+						
+						var roughTheta1 = this.roughTheta1;
+						var roughOmega1 = this.roughOmega1;
+						var roughTheta2 = this.roughTheta2;
+						var roughOmega2 = this.roughOmega2;
+						
+						var option = {
+							legend: {
+								right: 60,
+								top: 30,
+								itemHeight: 20,
+								selected: {
+								    'θ1': true,
+								    'θ2': true,
+									'ω1':false,
+									'ω2':false,
+								}
+							},
+							xAxis: {
+								
+							},
+							yAxis: {
+
+							},
+							series: [{
+									name: 'θ1',
+									showSymbol: false,
+									type: 'line',
+									lineStyle: {
+										width: 2,
+										color: "red"
+									},
+									data: roughTheta1,
+
+								},
+								{
+									name: 'θ2',
+									showSymbol: false,
+									type: 'line',
+									lineStyle: {
+										width: 2,
+										color: "orange"
+									},
+									data: roughTheta2,
+
+								},
+								{
+									name: 'ω1',
+									showSymbol: false,
+									type: 'line',
+									lineStyle: {
+										width: 2,
+										color: "green"
+									},
+									data: roughOmega1,
+
+								},
+								{
+									name: 'ω2',
+									showSymbol: false,
+									type: 'line',
+									lineStyle: {
+										width: 2,
+										color: "blue"
+									},
+									data: roughOmega2,
+
+								}
+							]
+						};
+						
+						drawArea2.setOption(option);
+					},
+					
+					backToSimulation: function(){
+						this.graphsBoxDispaly = "none";
+						this.movementBoxDispaly = "block";
+					},
+					
+					preview: function(){
+						
+						if(this.isRunningNow == false){
+							
+							this.movementBoxDispaly = "none";
+							this.graphsBoxDispaly = "none"
+						
+							var previewArea = echarts.init(document.querySelector("#preview"));
+							
+							var l1 = this.l1;
+							var l2 = this.l2;
+							var theta1 = this.initialTheta1 / 180 *Math.PI;
+							var theta2 = this.initialTheta2 / 180 *Math.PI;
+							var r = 0.05 * (l1 + l2);
+							
+							var innerBallPosition = [l1 * Math.sin(theta1), -l1 * Math.cos(theta1)];
+							var outerBallPosition = [l1 * Math.sin(theta1) + l2 * Math.sin(theta2), -l1 * Math.cos(theta1) - l2 * Math.cos(theta2)];
+							var innerBallOutline = [];
+							var outerBallOutline = [];
+							
+							var innerLine = [[0, 0], innerBallPosition];
+							var outerLine = [innerBallPosition, outerBallPosition];
+							
+							for (var t = 0; t <= 2 * Math.PI; t += 0.01) {
+								innerBallOutline.push([innerBallPosition[0] + r * Math.cos(t), innerBallPosition[1] + r * Math.sin(t)]); 
+								outerBallOutline.push([outerBallPosition[0] + r * Math.cos(t), outerBallPosition[1] + r * Math.sin(t)]);
+							};
+							
+							var option = {
+								animation: false,
+								xAxis: {
+									min: -1.05 * (l1 + l2),
+									max: 1.05 * (l1 + l2),
+									show: false
+								},
+								yAxis: {
+									min: -1.05 * (l1 + l2),
+									max: 1.05 * (l1 + l2),
+									show: false
+								},
+								series: [{
+										name: 'innerLine',
+										showSymbol: false,
+										type: 'line',
+										lineStyle: {
+											width: 3,
+											color: "green"
+										},
+										data: innerLine,
+									},
+									{
+										name: 'innerBallOutline',
+										showSymbol: false,
+										type: 'line',
+										lineStyle: {
+											width: 3,
+											color: "red"
+										},
+										data: innerBallOutline,
+									},
+									{
+										name: 'outerLine',
+										showSymbol: false,
+										type: 'line',
+										lineStyle: {
+											width: 3,
+											color: "green"
+										},
+										data: outerLine
+									},
+									{
+										name: 'outerBallOutline',
+										showSymbol: false,
+										type: 'line',
+										lineStyle: {
+											width: 3,
+											color: "orange"
+										},
+										data: outerBallOutline,
+									},
+								]
+							};
+							
+							previewArea.setOption(option);
+						}
+					},
+					
+					canPreview: function(){
+						if(this.isRunningNow == false){
+							this.previewDisplay = 'block';
+							this.bgDisplay = 'none';
+						}
+					}
+				}
+			})
+		</script>
+	</body>
+</html>

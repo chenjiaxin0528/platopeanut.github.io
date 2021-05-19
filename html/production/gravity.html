@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gravity</title>
+</head>
+<body style="text-align: center;">
+    <canvas id="canvas"></canvas>
+    <script>
+        let canvas = document.getElementById("canvas");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        let ctx = canvas.getContext("2d");
+
+        let x = canvas.width/2,y=100;
+        const r = 50;
+        const k = 0.01;                                 // k = 0.5g
+        const x0 = 0.01;                           // x0 = k*(0.01)^2
+        let flag = 0,time = 1;                  // 0:down,1:up
+        let v0;                                 //up init speed
+        function draw(x,y){
+            ctx.beginPath();
+            ctx.fillStyle = "#00CD00";
+            ctx.arc(x,y,r,0,Math.PI*2);
+            ctx.fill();
+        }
+        function down(){
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            y+=x0*(2*time-1);
+            time++;
+            draw(x,y);
+            if(y+r>=window.innerHeight){ 
+                flag = 1;
+                v0 = 2*k*time;
+                time = 1;
+            }
+        }
+        function up(){
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            y = window.innerHeight-r-v0*time+k*time*time;
+            time++;
+            draw(x,y);
+            if(y<=100){
+                flag = 0;
+                time = 1;
+            }
+        }
+
+        function move(){
+            if(flag===0) down();
+            else up();
+        }
+        draw(x,y);
+        setInterval(move,10);
+    </script>
+</body>
+</html>
